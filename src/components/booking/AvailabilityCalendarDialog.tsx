@@ -16,19 +16,19 @@ const AvailabilityCalendarDialog: React.FC = () => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" className="border-primary text-primary-foreground">
-          <CalendarIcon className="mr-2 h-4 w-4" /> View Full Availability Calendar
+          <CalendarIcon className="mr-2 h-4 w-4" /> View Availability Calendar
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Ilana's Full Availability Calendar</DialogTitle>
+          <DialogTitle>Ilana's Availability Calendar</DialogTitle>
           <DialogDescription>
-            This calendar shows all currently booked times
+            This calendar shows free/busy status only
           </DialogDescription>
         </DialogHeader>
         <div className="aspect-video w-full mb-4 overflow-hidden rounded-lg border border-border">
           <iframe 
-            src="https://calendar.google.com/calendar/embed?src=65dc0af788aa48f5a2acdd219617f11f02f3b80a242461d49182cc68b3f98a09%40group.calendar.google.com&ctz=Asia%2FJerusalem" 
+            src="https://calendar.google.com/calendar/embed?src=65dc0af788aa48f5a2acdd219617f11f02f3b80a242461d49182cc68b3f98a09%40group.calendar.google.com&ctz=Asia%2FJerusalem&mode=AGENDA&showCalendars=0&showTabs=0&showPrint=0&showTitle=0&showDate=1&showNav=1" 
             className="w-full h-full"
             frameBorder="0"
             scrolling="no"
