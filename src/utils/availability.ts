@@ -34,9 +34,10 @@ export const generateMockAvailability = () => {
     
     for (let hour = startHour; hour <= endHour; hour++) {
       if (hour === startHour) {
+        // For 9:30 AM
         const timeString = hour < 12 
-          ? `${hour}:${startMinutes} AM` 
-          : `${hour === 12 ? 12 : hour - 12}:${startMinutes} PM`;
+          ? `${hour}:${startMinutes.toString().padStart(2, '0')} AM` 
+          : `${hour === 12 ? 12 : hour - 12}:${startMinutes.toString().padStart(2, '0')} PM`;
         
         timeSlots.push({
           time: timeString,
@@ -58,7 +59,8 @@ export const generateMockAvailability = () => {
         available: true
       });
       
-      if (hour < endHour || (hour === endHour && endMinutes > 30)) {
+      // Add half-hour slots
+      if (hour < endHour || (hour === endHour && endMinutes > 0)) {
         const halfHourString = hour < 12 
           ? `${hour}:30 AM` 
           : `${hour === 12 ? 12 : hour - 12}:30 PM`;
@@ -70,10 +72,10 @@ export const generateMockAvailability = () => {
       }
     }
     
-    if (endMinutes === 30) {
+    if (endMinutes > 0) {
       const endTimeString = endHour < 12 
-        ? `${endHour}:${endMinutes} AM` 
-        : `${endHour === 12 ? 12 : endHour - 12}:${endMinutes} PM`;
+        ? `${endHour}:${endMinutes.toString().padStart(2, '0')} AM` 
+        : `${endHour === 12 ? 12 : endHour - 12}:${endMinutes.toString().padStart(2, '0')} PM`;
       
       timeSlots.push({
         time: endTimeString,
