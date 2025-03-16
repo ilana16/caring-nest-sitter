@@ -44,7 +44,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
             <img 
-              src="/lovable-uploads/38bfbd61-af3c-451e-8eda-32fd54e0b0ac.png" 
+              src="/lovable-uploads/37091ff6-4633-45c4-850e-5da3224a560c.png" 
               alt="Ilana Cares Logo" 
               className="h-10 w-10 md:h-12 md:w-12 mr-2 md:mr-3"
             />

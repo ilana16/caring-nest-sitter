@@ -31,8 +31,8 @@ const Index = () => {
               className="image-container w-full max-w-md mb-12 mt-4 overflow-hidden shadow-lg"
             >
               <img 
-                src="/lovable-uploads/7d1ff306-ee56-4167-bf66-e8ab4f8ef591.png" 
-                alt="Ilana" 
+                src="/lovable-uploads/37091ff6-4633-45c4-850e-5da3224a560c.png" 
+                alt="Ilana Cares" 
                 className="w-full h-auto rounded-xl object-cover transition-transform duration-500 hover:scale-105"
               />
             </motion.div>
