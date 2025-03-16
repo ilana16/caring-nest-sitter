@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Info } from 'lucide-react';
+import { CreditCard, Info, Copy, Check } from 'lucide-react';
 import { PaypalLogo } from '@/components/ui/paypal-logo';
 import PageTransition from '@/components/PageTransition';
 import PaymentButton from '@/components/PaymentButton';
+import { toast } from 'sonner';
 
 const BitIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -14,6 +15,27 @@ const BitIcon = () => (
 );
 
 const Payment = () => {
+  const [copiedBit, setCopiedBit] = useState(false);
+  const [copiedPaybox, setCopiedPaybox] = useState(false);
+  
+  const copyToClipboard = (text: string, type: 'bit' | 'paybox') => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        if (type === 'bit') {
+          setCopiedBit(true);
+          setTimeout(() => setCopiedBit(false), 2000);
+        } else {
+          setCopiedPaybox(true);
+          setTimeout(() => setCopiedPaybox(false), 2000);
+        }
+        toast.success('Phone number copied to clipboard');
+      })
+      .catch(err => {
+        console.error('Failed to copy text: ', err);
+        toast.error('Failed to copy to clipboard');
+      });
+  };
+
   return (
     <PageTransition>
       <div className="min-h-screen py-12 md:py-16 bg-gradient-to-br from-background to-primary/30">
@@ -24,7 +46,7 @@ const Payment = () => {
             transition={{ duration: 0.5 }}
             className="max-w-4xl mx-auto"
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-center mb-6 text-foreground">Payment Options</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-center mb-6 text-foreground">Online Payment Options</h1>
             <p className="text-lg text-center text-foreground/80 mb-12 max-w-2xl mx-auto">
               Multiple convenient payment methods available
             </p>
@@ -36,19 +58,37 @@ const Payment = () => {
                 transition={{ delay: 0.2, duration: 0.5 }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-6"
               >
-                <PaymentButton
-                  title="Bit"
-                  value="050-529-8803"
-                  icon={<BitIcon />}
-                  className="border-accent/40 bg-accent/20 hover:bg-accent/30"
-                />
+                <div className="relative">
+                  <PaymentButton
+                    title="Bit"
+                    value="050-529-8803"
+                    icon={<BitIcon />}
+                    className="border-accent/40 bg-accent/20 hover:bg-accent/30"
+                  />
+                  <button 
+                    onClick={() => copyToClipboard('0505298803', 'bit')}
+                    className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
+                    aria-label="Copy Bit number"
+                  >
+                    {copiedBit ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-foreground/70" />}
+                  </button>
+                </div>
                 
-                <PaymentButton
-                  title="Paybox"
-                  value="050-529-8803"
-                  icon={<CreditCard className="text-primary-foreground" />}
-                  className="border-primary/40 bg-primary/20 hover:bg-primary/30"
-                />
+                <div className="relative">
+                  <PaymentButton
+                    title="Paybox"
+                    value="050-529-8803"
+                    icon={<CreditCard className="text-primary-foreground" />}
+                    className="border-primary/40 bg-primary/20 hover:bg-primary/30"
+                  />
+                  <button 
+                    onClick={() => copyToClipboard('0505298803', 'paybox')}
+                    className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
+                    aria-label="Copy Paybox number"
+                  >
+                    {copiedPaybox ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-foreground/70" />}
+                  </button>
+                </div>
                 
                 <PaymentButton
                   title="PayPal"
