@@ -27,10 +27,11 @@ export const generateMockAvailability = () => {
     const dateKey = format(day, 'yyyy-MM-dd');
     const timeSlots: TimeSlot[] = [];
     
-    const startHour = 9;
-    const startMinutes = 30;
-    const endHour = 23;
-    const endMinutes = 30;
+    // Make sure these are treated as general numbers, not literal types
+    const startHour: number = 9;
+    const startMinutes: number = 30;
+    const endHour: number = 23;
+    const endMinutes: number = 30;
     
     for (let hour = startHour; hour <= endHour; hour++) {
       if (hour === startHour) {
@@ -46,6 +47,7 @@ export const generateMockAvailability = () => {
         continue;
       }
       
+      // Compare as numbers, not literal types
       if (hour === endHour && endMinutes === 0) {
         continue;
       }
