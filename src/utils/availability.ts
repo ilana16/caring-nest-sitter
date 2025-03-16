@@ -6,6 +6,24 @@ export interface TimeSlot {
   available: boolean;
 }
 
+// Helper function to generate busy times (in a real app, this would come from a calendar API)
+const generateBusyTimes = (): Record<string, string[]> => {
+  // Sample busy times for demonstration
+  const today = new Date();
+  const todayStr = format(today, 'yyyy-MM-dd');
+  
+  // Next day
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
+  
+  // Sample busy times for different days
+  return {
+    [todayStr]: ['10:00 AM', '2:30 PM', '5:00 PM'],
+    [tomorrowStr]: ['9:30 AM', '1:00 PM', '4:30 PM'],
+  };
+};
+
 export const generateMockAvailability = () => {
   const today = new Date();
   const nextMonth = addMonths(today, 1);
@@ -22,6 +40,7 @@ export const generateMockAvailability = () => {
   });
   
   const availabilityByDate: Record<string, TimeSlot[]> = {};
+  const busyTimes = generateBusyTimes();
   
   availableDays.forEach(day => {
     const dateKey = format(day, 'yyyy-MM-dd');
@@ -33,6 +52,9 @@ export const generateMockAvailability = () => {
     const endHour: number = 23;
     const endMinutes: number = 30;
     
+    // Get busy times for this date
+    const busyTimesForDate = busyTimes[dateKey] || [];
+    
     for (let hour = startHour; hour <= endHour; hour++) {
       if (hour === startHour) {
         // For 9:30 AM
@@ -42,7 +64,7 @@ export const generateMockAvailability = () => {
         
         timeSlots.push({
           time: timeString,
-          available: true
+          available: !busyTimesForDate.includes(timeString)
         });
         continue;
       }
@@ -58,7 +80,7 @@ export const generateMockAvailability = () => {
       
       timeSlots.push({
         time: timeString,
-        available: true
+        available: !busyTimesForDate.includes(timeString)
       });
       
       // Add half-hour slots
@@ -69,7 +91,7 @@ export const generateMockAvailability = () => {
         
         timeSlots.push({
           time: halfHourString,
-          available: true
+          available: !busyTimesForDate.includes(halfHourString)
         });
       }
     }
@@ -81,7 +103,7 @@ export const generateMockAvailability = () => {
       
       timeSlots.push({
         time: endTimeString,
-        available: true
+        available: !busyTimesForDate.includes(endTimeString)
       });
     }
     

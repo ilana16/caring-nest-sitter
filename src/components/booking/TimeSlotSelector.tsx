@@ -26,6 +26,10 @@ const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({ availableTimeSlots,
     return availableTimeSlots.filter(slot => slot.available);
   };
 
+  const getUnavailableTimes = () => {
+    return availableTimeSlots.filter(slot => !slot.available);
+  };
+
   return (
     <FormField
       name="startTime"
@@ -44,11 +48,36 @@ const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({ availableTimeSlots,
             </FormControl>
             <SelectContent>
               {getAvailableTimes().length > 0 ? (
-                getAvailableTimes().map((slot) => (
-                  <SelectItem key={slot.time} value={slot.time}>
-                    {slot.time}
+                <>
+                  {/* Available times */}
+                  <SelectItem value="available-times-header" disabled className="font-semibold text-xs opacity-70">
+                    Available Times
                   </SelectItem>
-                ))
+                  {getAvailableTimes().map((slot) => (
+                    <SelectItem key={slot.time} value={slot.time}>
+                      {slot.time}
+                    </SelectItem>
+                  ))}
+                  
+                  {/* Unavailable times */}
+                  {getUnavailableTimes().length > 0 && (
+                    <>
+                      <SelectItem value="unavailable-times-header" disabled className="font-semibold text-xs opacity-70 mt-2">
+                        Busy - Unavailable Times
+                      </SelectItem>
+                      {getUnavailableTimes().map((slot) => (
+                        <SelectItem 
+                          key={slot.time} 
+                          value={`unavailable-${slot.time}`} 
+                          disabled 
+                          className="text-gray-400 line-through"
+                        >
+                          {slot.time}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                </>
               ) : (
                 <SelectItem value="no-times-available" disabled>
                   No available times for this date
