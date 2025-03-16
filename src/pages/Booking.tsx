@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon, Clock, Info } from 'lucide-react';
-import { format, addDays, isWeekend, startOfMonth, addMonths, eachDayOfInterval, isBefore, isAfter, isEqual, setHours, setMinutes, getHours, getMinutes, addHours } from 'date-fns';
+import { format, addDays, isWeekend, startOfMonth, addMonths, eachDayOfInterval, isBefore, isAfter, isEqual, setHours, setMinutes, getHours, getMinutes, addHours, getDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -63,8 +63,8 @@ const generateMockAvailability = () => {
   });
   
   const availableDays = allDays.filter(day => {
-    if (isWeekend(day)) return false;
-    return Math.random() > 0.3;
+    const dayOfWeek = getDay(day);
+    return dayOfWeek >= 0 && dayOfWeek <= 4;
   });
   
   const availabilityByDate: Record<string, TimeSlot[]> = {};
@@ -73,14 +73,57 @@ const generateMockAvailability = () => {
     const dateKey = format(day, 'yyyy-MM-dd');
     const timeSlots: TimeSlot[] = [];
     
-    for (let hour = 9; hour <= 20; hour++) {
-      const hourString = hour <= 12 ? `${hour}:00 AM` : `${hour - 12}:00 PM`;
+    const startHour = 9;
+    const startMinutes = 30;
+    const endHour = 23;
+    const endMinutes = 30;
+    
+    for (let hour = startHour; hour <= endHour; hour++) {
+      if (hour === startHour) {
+        const timeString = hour < 12 
+          ? `${hour}:${startMinutes} AM` 
+          : `${hour === 12 ? 12 : hour - 12}:${startMinutes} PM`;
+        
+        timeSlots.push({
+          time: timeString,
+          available: true
+        });
+        continue;
+      }
       
-      const isAvailable = Math.random() > 0.4;
+      if (hour === endHour && endMinutes === 0) {
+        continue;
+      }
+      
+      const timeString = hour < 12 
+        ? `${hour}:00 AM` 
+        : `${hour === 12 ? 12 : hour - 12}:00 PM`;
       
       timeSlots.push({
-        time: hourString,
-        available: isAvailable
+        time: timeString,
+        available: true
+      });
+      
+      if (hour < endHour || (hour === endHour && endMinutes > 30)) {
+        const halfHourString = hour < 12 
+          ? `${hour}:30 AM` 
+          : `${hour === 12 ? 12 : hour - 12}:30 PM`;
+        
+        timeSlots.push({
+          time: halfHourString,
+          available: true
+        });
+      }
+    }
+    
+    if (endMinutes === 30) {
+      const endTimeString = endHour < 12 
+        ? `${endHour}:${endMinutes} AM` 
+        : `${endHour === 12 ? 12 : endHour - 12}:${endMinutes} PM`;
+      
+      timeSlots.push({
+        time: endTimeString,
+        available: true
       });
     }
     
