@@ -1,11 +1,109 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Info } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Info } from 'lucide-react';
+import { format, addDays, isWeekend } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { cn } from '@/lib/utils';
 import AnimatedButton from '@/components/AnimatedButton';
 import PageTransition from '@/components/PageTransition';
 
+// Available booking times
+const AVAILABLE_TIMES = [
+  '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+  '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', 
+  '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'
+];
+
+const BookingFormSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  phone: z.string().min(9, { message: "Please enter a valid phone number." }),
+  date: z.date({
+    required_error: "Please select a date for your booking.",
+  }),
+  startTime: z.string({
+    required_error: "Please select a start time.",
+  }),
+  duration: z.number({
+    required_error: "Please select a duration.",
+  }).min(2).max(6),
+  children: z.string().min(1, { message: "Please enter the number of children." }),
+  notes: z.string().optional(),
+});
+
+type BookingFormValues = z.infer<typeof BookingFormSchema>;
+
 const Booking = () => {
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  
+  // Create booking form with react-hook-form
+  const form = useForm<BookingFormValues>({
+    resolver: zodResolver(BookingFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      date: undefined,
+      startTime: "",
+      duration: 2,
+      children: "1",
+      notes: "",
+    },
+  });
+
+  // Get available dates (next 30 days excluding past dates)
+  const today = new Date();
+  const thirtyDaysFromNow = addDays(today, 30);
+
+  function onSubmit(data: BookingFormValues) {
+    console.log("Form submitted:", data);
+    // Here you would typically send the data to a backend or email service
+    // For now, we'll just show a success message
+    setBookingSuccess(true);
+  }
+
   return (
     <PageTransition>
       <div className="min-h-screen py-12 md:py-16">
@@ -18,7 +116,7 @@ const Booking = () => {
           >
             <h1 className="text-3xl md:text-4xl font-bold text-center mb-6">Availability & Booking</h1>
             <p className="text-lg text-center text-foreground/80 mb-12 max-w-2xl mx-auto">
-              Check my availability and book a time slot directly through my calendar
+              Fill out the form below to book a time slot for babysitting services
             </p>
             
             <div className="mb-8">
@@ -29,27 +127,249 @@ const Booking = () => {
                 className="glass-card p-6 md:p-8 mb-8"
               >
                 <div className="flex items-center justify-center space-x-2 mb-6">
-                  <Calendar className="h-6 w-6 text-accent" />
-                  <h2 className="text-xl font-semibold">My Calendar</h2>
+                  <CalendarIcon className="h-6 w-6 text-accent" />
+                  <h2 className="text-xl font-semibold">Book A Session</h2>
                 </div>
                 
-                <div className="aspect-video w-full mb-4 overflow-hidden rounded-lg border border-border">
-                  <iframe 
-                    src="https://calendar.google.com/calendar/embed?src=65dc0af788aa48f5a2acdd219617f11f02f3b80a242461d49182cc68b3f98a09%40group.calendar.google.com&ctz=Asia%2FJerusalem" 
-                    className="w-full h-full"
-                    frameBorder="0"
-                    scrolling="no"
-                    title="Ilana's Availability Calendar"
-                  ></iframe>
-                </div>
-                
-                <div className="flex items-start p-4 bg-primary/20 rounded-lg mt-6">
-                  <Info className="h-5 w-5 text-primary-foreground mr-3 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-foreground/80">
-                    This calendar shows my current availability. The highlighted areas are times when I'm already booked. 
-                    To book a session, please contact me with your preferred date and time.
-                  </p>
-                </div>
+                {bookingSuccess ? (
+                  <Card className="bg-primary/20 border border-primary">
+                    <CardHeader>
+                      <CardTitle className="text-center">Booking Request Sent!</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-center mb-4">
+                        Thank you for your booking request. Ilana will contact you shortly to confirm your booking.
+                      </p>
+                      <div className="flex justify-center">
+                        <Button 
+                          variant="outline"
+                          onClick={() => {
+                            setBookingSuccess(false);
+                            form.reset();
+                          }}
+                        >
+                          Make Another Booking
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Your Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter your full name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email Address</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="your@email.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone Number</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your phone number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="children"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Number of Children</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="1">1 child</SelectItem>
+                                  <SelectItem value="2">2 children</SelectItem>
+                                  <SelectItem value="3">3 children</SelectItem>
+                                  <SelectItem value="4+">4+ children</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel>Date</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? (
+                                        format(field.value, "PPP")
+                                      ) : (
+                                        <span>Select a date</span>
+                                      )}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) => {
+                                      // Disable past dates, weekends, or dates beyond 30 days
+                                      return (
+                                        date < today ||
+                                        date > thirtyDaysFromNow
+                                      );
+                                    }}
+                                    initialFocus
+                                    className={cn("p-3 pointer-events-auto")}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="startTime"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Start Time</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a time" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {AVAILABLE_TIMES.map((time) => (
+                                    <SelectItem key={time} value={time}>
+                                      {time}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="duration"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Duration (2-6 hours): {field.value} hours</FormLabel>
+                            <FormControl>
+                              <div className="flex items-center space-x-4">
+                                <Clock className="h-5 w-5 text-accent" />
+                                <Slider
+                                  min={2}
+                                  max={6}
+                                  step={1}
+                                  defaultValue={[field.value]}
+                                  onValueChange={(value) => field.onChange(value[0])}
+                                  className="flex-1"
+                                />
+                                <span className="w-12 text-center">{field.value}h</span>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Additional Notes (Optional)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Special requests, needs, or information"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex items-start p-4 bg-secondary/20 rounded-lg mt-6">
+                        <Info className="h-5 w-5 text-secondary-foreground mr-3 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-foreground/80">
+                          <p className="mb-1 font-medium">Booking Information:</p>
+                          <ul className="list-disc pl-4 space-y-1">
+                            <li>2 hour minimum booking required</li>
+                            <li>Base rate for 1 child - ₪50/hour</li>
+                            <li>Multiple children or special needs may have different rates</li>
+                            <li>Your booking is a request until confirmed by Ilana</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-center pt-2">
+                        <Button 
+                          type="submit" 
+                          className="bg-accent hover:bg-accent/90 text-accent-foreground px-8"
+                        >
+                          Submit Booking Request
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                )}
               </motion.div>
               
               <motion.div
@@ -59,20 +379,38 @@ const Booking = () => {
                 className="text-center"
               >
                 <p className="text-lg mb-6 text-foreground/80">
-                  After checking my availability, feel free to contact me to finalize your booking
+                  After submitting your booking request, Ilana will contact you to confirm the details
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="border-primary text-primary-foreground">
+                        <CalendarIcon className="mr-2 h-4 w-4" /> View Full Availability Calendar
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                      <DialogHeader>
+                        <DialogTitle>Ilana's Full Availability Calendar</DialogTitle>
+                        <DialogDescription>
+                          This calendar shows all currently booked times
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="aspect-video w-full mb-4 overflow-hidden rounded-lg border border-border">
+                        <iframe 
+                          src="https://calendar.google.com/calendar/embed?src=65dc0af788aa48f5a2acdd219617f11f02f3b80a242461d49182cc68b3f98a09%40group.calendar.google.com&ctz=Asia%2FJerusalem" 
+                          className="w-full h-full"
+                          frameBorder="0"
+                          scrolling="no"
+                          title="Ilana's Availability Calendar"
+                        ></iframe>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   <AnimatedButton 
                     to="/contact" 
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    className="bg-muted hover:bg-muted/90 text-muted-foreground"
                   >
-                    Contact to Book
-                  </AnimatedButton>
-                  <AnimatedButton 
-                    to="/payment" 
-                    className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
-                  >
-                    Payment Options
+                    Have Questions? Contact Ilana
                   </AnimatedButton>
                 </div>
               </motion.div>
