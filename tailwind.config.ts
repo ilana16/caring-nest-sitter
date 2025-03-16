@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -26,11 +25,11 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#f7e3d3',
+					DEFAULT: '#D3E4FD',
 					foreground: '#4a3e38'
 				},
 				secondary: {
-					DEFAULT: '#f9f2ed',
+					DEFAULT: '#FEF7CD',
 					foreground: '#4a3e38'
 				},
 				destructive: {
@@ -38,11 +37,11 @@ export default {
 					foreground: 'hsl(var(--destructive-foreground))'
 				},
 				muted: {
-					DEFAULT: '#f1ece8',
+					DEFAULT: '#E5DEFF',
 					foreground: '#4a3e38'
 				},
 				accent: {
-					DEFAULT: '#e2b396',
+					DEFAULT: '#FFDEE2',
 					foreground: '#4a3e38'
 				},
 				popover: {
