@@ -19,7 +19,7 @@ const Index = () => {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
                 Ilana Cares
               </h1>
-              <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto whitespace-nowrap">
                 English Speaking Babysitter In The Talpiot/Arnona/Baka/Katamon Area
               </p>
             </motion.div>
