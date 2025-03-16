@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { format, addHours } from 'date-fns';
+import { CalendarIcon, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useFormContext } from 'react-hook-form';
 import { BookingFormValues } from '@/schemas/bookingFormSchema';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DateSelectorProps {
   availableDays: Date[];
@@ -31,12 +32,30 @@ const DateSelector: React.FC<DateSelectorProps> = ({ availableDays, onDateChange
     return format(date, 'PPP');
   };
 
+  // Calculate the earliest available date (now + 42 hours)
+  const now = new Date();
+  const minBookingTime = addHours(now, 42);
+  const minBookingDate = new Date(minBookingTime);
+  minBookingDate.setHours(0, 0, 0, 0); // Set to start of day
+
   return (
     <FormField
       name="date"
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel>Date</FormLabel>
+          <div className="flex items-center gap-2">
+            <FormLabel>Date</FormLabel>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">Bookings require at least 42 hours notice</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
@@ -66,8 +85,8 @@ const DateSelector: React.FC<DateSelectorProps> = ({ availableDays, onDateChange
                 }}
                 availableDays={availableDays}
                 disabled={(date) => {
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
+                  // Dates before the minimum booking date are disabled
+                  const isBeforeMinBookingDate = date < minBookingDate;
                   
                   const isAvailable = availableDays.some(
                     availableDate => 
@@ -76,13 +95,19 @@ const DateSelector: React.FC<DateSelectorProps> = ({ availableDays, onDateChange
                       availableDate.getFullYear() === date.getFullYear()
                   );
                   
-                  return date < today || !isAvailable;
+                  return isBeforeMinBookingDate || !isAvailable;
                 }}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
               />
             </PopoverContent>
           </Popover>
+          
+          {/* Notice about 42 hour requirement */}
+          <div className="text-xs text-muted-foreground mt-1">
+            Bookings require at least 42 hours notice
+          </div>
+          
           <FormMessage />
         </FormItem>
       )}

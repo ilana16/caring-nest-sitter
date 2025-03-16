@@ -1,5 +1,5 @@
 
-import { addMonths, eachDayOfInterval, format, getDay } from 'date-fns';
+import { addMonths, eachDayOfInterval, format, getDay, addHours, isAfter } from 'date-fns';
 
 export interface TimeSlot {
   time: string;
@@ -22,6 +22,32 @@ const generateBusyTimes = (): Record<string, string[]> => {
     [todayStr]: ['10:00 AM', '2:30 PM', '5:00 PM'],
     [tomorrowStr]: ['9:30 AM', '1:00 PM', '4:30 PM'],
   };
+};
+
+// Helper function to check if a date and time combination is within the 42 hour notice period
+const isWithin42HourNotice = (date: Date, timeStr: string): boolean => {
+  // Parse the time string to get hours and minutes
+  const isPM = timeStr.includes('PM');
+  const is12Hour = timeStr.includes('12:') && isPM;
+  
+  let [hourMin] = timeStr.split(' ');
+  let [hours, minutes] = hourMin.split(':').map(Number);
+  
+  // Convert to 24-hour format
+  if (isPM && !is12Hour) {
+    hours += 12;
+  }
+  
+  // Create a new date object with the specified time
+  const dateTime = new Date(date);
+  dateTime.setHours(hours, minutes, 0, 0);
+  
+  // Calculate the minimum booking time (now + 42 hours)
+  const now = new Date();
+  const minBookingTime = addHours(now, 42);
+  
+  // Return true if the date/time is before the minimum booking time
+  return !isAfter(dateTime, minBookingTime);
 };
 
 export const generateMockAvailability = () => {
@@ -64,7 +90,7 @@ export const generateMockAvailability = () => {
         
         timeSlots.push({
           time: timeString,
-          available: !busyTimesForDate.includes(timeString)
+          available: !busyTimesForDate.includes(timeString) && !isWithin42HourNotice(day, timeString)
         });
         continue;
       }
@@ -80,7 +106,7 @@ export const generateMockAvailability = () => {
       
       timeSlots.push({
         time: timeString,
-        available: !busyTimesForDate.includes(timeString)
+        available: !busyTimesForDate.includes(timeString) && !isWithin42HourNotice(day, timeString)
       });
       
       // Add half-hour slots
@@ -91,7 +117,7 @@ export const generateMockAvailability = () => {
         
         timeSlots.push({
           time: halfHourString,
-          available: !busyTimesForDate.includes(halfHourString)
+          available: !busyTimesForDate.includes(halfHourString) && !isWithin42HourNotice(day, halfHourString)
         });
       }
     }
@@ -103,7 +129,7 @@ export const generateMockAvailability = () => {
       
       timeSlots.push({
         time: endTimeString,
-        available: !busyTimesForDate.includes(endTimeString)
+        available: !busyTimesForDate.includes(endTimeString) && !isWithin42HourNotice(day, endTimeString)
       });
     }
     

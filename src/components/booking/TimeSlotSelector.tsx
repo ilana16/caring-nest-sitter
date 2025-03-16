@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TimeSlot } from '@/utils/availability';
+import { Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TimeSlotSelectorProps {
   availableTimeSlots: TimeSlot[];
@@ -35,7 +37,19 @@ const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({ availableTimeSlots,
       name="startTime"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Start Time</FormLabel>
+          <div className="flex items-center gap-2">
+            <FormLabel>Start Time</FormLabel>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">Times within 42 hours are unavailable</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <Select 
             onValueChange={field.onChange} 
             defaultValue={field.value}
@@ -85,6 +99,12 @@ const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({ availableTimeSlots,
               )}
             </SelectContent>
           </Select>
+          
+          {/* Notice about 42 hour requirement */}
+          <div className="text-xs text-muted-foreground mt-1">
+            Times within 42 hours from now are unavailable
+          </div>
+          
           <FormMessage />
         </FormItem>
       )}
