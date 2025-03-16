@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon, Clock, Info } from 'lucide-react';
@@ -49,44 +48,34 @@ import { cn } from '@/lib/utils';
 import AnimatedButton from '@/components/AnimatedButton';
 import PageTransition from '@/components/PageTransition';
 
-// Define types for availability
 interface TimeSlot {
   time: string;
   available: boolean;
 }
 
-// Mock availability data - in a real app this would come from an API
 const generateMockAvailability = () => {
   const today = new Date();
   const nextMonth = addMonths(today, 1);
   
-  // Generate all days in the interval
   const allDays = eachDayOfInterval({
     start: today,
     end: nextMonth,
   });
   
-  // Filter out weekends and some random days to simulate unavailability
   const availableDays = allDays.filter(day => {
-    // Filter out weekends
     if (isWeekend(day)) return false;
-    
-    // Random unavailability (about 30% of weekdays will be unavailable)
     return Math.random() > 0.3;
   });
   
-  // For each available day, generate available time slots
   const availabilityByDate: Record<string, TimeSlot[]> = {};
   
   availableDays.forEach(day => {
     const dateKey = format(day, 'yyyy-MM-dd');
     const timeSlots: TimeSlot[] = [];
     
-    // Generate time slots from 9 AM to 8 PM
     for (let hour = 9; hour <= 20; hour++) {
       const hourString = hour <= 12 ? `${hour}:00 AM` : `${hour - 12}:00 PM`;
       
-      // Random availability for time slots (about 40% will be unavailable)
       const isAvailable = Math.random() > 0.4;
       
       timeSlots.push({
@@ -129,7 +118,6 @@ const Booking = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   
-  // Create booking form with react-hook-form
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(BookingFormSchema),
     defaultValues: {
@@ -144,14 +132,12 @@ const Booking = () => {
     },
   });
 
-  // Update available time slots when selected date changes
   useEffect(() => {
     if (selectedDate) {
       const dateKey = format(selectedDate, 'yyyy-MM-dd');
       const slots = availability.availabilityByDate[dateKey] || [];
       setAvailableTimeSlots(slots);
       
-      // Reset time selection if currently selected time is not available
       const currentTime = form.getValues('startTime');
       const isCurrentTimeAvailable = slots.some(slot => slot.time === currentTime && slot.available);
       
@@ -163,18 +149,15 @@ const Booking = () => {
     }
   }, [selectedDate, availability, form]);
 
-  // Handle date selection and update form
   const handleDateChange = (date: Date | undefined) => {
     setSelectedDate(date);
     form.setValue('date', date as Date);
   };
 
-  // Get available times based on selected date and duration
   const getAvailableTimes = () => {
     return availableTimeSlots.filter(slot => slot.available);
   };
 
-  // Format date as human-readable
   const formatDate = (date: Date | undefined) => {
     if (!date) return 'Select a date';
     return format(date, 'PPP');
@@ -182,8 +165,6 @@ const Booking = () => {
 
   function onSubmit(data: BookingFormValues) {
     console.log("Form submitted:", data);
-    // Here you would typically send the data to a backend or email service
-    // For now, we'll just show a success message
     setBookingSuccess(true);
   }
 
@@ -347,7 +328,6 @@ const Booking = () => {
                                       const today = new Date();
                                       today.setHours(0, 0, 0, 0);
                                       
-                                      // Check if date is in available days
                                       const isAvailable = availability.availableDays.some(
                                         availableDate => 
                                           availableDate.getDate() === date.getDate() &&
@@ -355,7 +335,6 @@ const Booking = () => {
                                           availableDate.getFullYear() === date.getFullYear()
                                       );
                                       
-                                      // Disable past dates and unavailable dates
                                       return isBefore(date, today) || !isAvailable;
                                     }}
                                     initialFocus
@@ -392,7 +371,7 @@ const Booking = () => {
                                       </SelectItem>
                                     ))
                                   ) : (
-                                    <SelectItem value="" disabled>
+                                    <SelectItem value="no-times-available" disabled>
                                       No available times for this date
                                     </SelectItem>
                                   )}
