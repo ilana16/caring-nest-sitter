@@ -4,10 +4,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const isMobile = useIsMobile();
   
   // Close mobile menu when route changes
   useEffect(() => {
@@ -38,15 +40,15 @@ const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/80 border-b border-border/40">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
             <img 
               src="/lovable-uploads/38bfbd61-af3c-451e-8eda-32fd54e0b0ac.png" 
               alt="Ilana Cares Logo" 
-              className="h-12 w-12 mr-3"
+              className="h-10 w-10 md:h-12 md:w-12 mr-2 md:mr-3"
             />
-            <span className="text-2xl font-bold font-playfair tracking-wide">Ilana Cares</span>
+            <span className="text-xl md:text-2xl font-bold font-playfair tracking-wide">Ilana Cares</span>
           </Link>
           
           {/* Desktop navigation */}
@@ -96,13 +98,13 @@ const Navbar: React.FC = () => {
             transition={{ duration: 0.3 }}
             className="md:hidden bg-background border-t border-border/40"
           >
-            <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+            <div className="container mx-auto px-4 py-4 flex flex-col space-y-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   className={cn(
-                    "py-3 px-4 rounded-lg font-medium text-center",
+                    "py-2 px-4 rounded-lg font-medium text-center",
                     location.pathname === link.path 
                       ? "bg-accent/10 text-accent" 
                       : "text-foreground/80 hover:bg-muted hover:text-foreground"

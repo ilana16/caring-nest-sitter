@@ -26,6 +26,7 @@ import { TimeSlot } from '@/utils/availability';
 import DateSelector from './DateSelector';
 import TimeSlotSelector from './TimeSlotSelector';
 import DurationSelector from './DurationSelector';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BookingFormProps {
   availableDays: Date[];
@@ -40,6 +41,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+  const isMobile = useIsMobile();
   
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(BookingFormSchema),
@@ -83,18 +85,18 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Your Name</FormLabel>
+                <FormLabel className="text-sm">Your Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your full name" {...field} />
+                  <Input placeholder="Enter your full name" {...field} className="text-sm" />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -104,11 +106,11 @@ const BookingForm: React.FC<BookingFormProps> = ({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email Address</FormLabel>
+                <FormLabel className="text-sm">Email Address</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="your@email.com" {...field} />
+                  <Input type="email" placeholder="your@email.com" {...field} className="text-sm" />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -118,11 +120,11 @@ const BookingForm: React.FC<BookingFormProps> = ({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number</FormLabel>
+                <FormLabel className="text-sm">Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your phone number" {...field} />
+                  <Input placeholder="Your phone number" {...field} className="text-sm" />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -132,13 +134,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
             name="children"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Number of Children</FormLabel>
+                <FormLabel className="text-sm">Number of Children</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                   </FormControl>
@@ -149,13 +151,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
                     <SelectItem value="4+">4+ children</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <DateSelector 
             availableDays={availableDays}
             onDateChange={handleDateChange}
@@ -174,23 +176,24 @@ const BookingForm: React.FC<BookingFormProps> = ({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Additional Notes (Optional)</FormLabel>
+              <FormLabel className="text-sm">Additional Notes (Optional)</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Special requests, needs, or information"
                   {...field}
+                  className="text-sm"
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
 
-        <div className="flex items-start p-4 bg-secondary/20 rounded-lg mt-6">
-          <Info className="h-5 w-5 text-secondary-foreground mr-3 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-foreground/80">
+        <div className="flex items-start p-3 sm:p-4 bg-secondary/20 rounded-lg mt-4 sm:mt-6">
+          <Info className="h-4 w-4 sm:h-5 sm:w-5 text-secondary-foreground mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+          <div className="text-xs sm:text-sm text-foreground/80">
             <p className="mb-1 font-medium">Booking Information:</p>
-            <ul className="list-disc pl-4 space-y-1">
+            <ul className="list-disc pl-4 space-y-0.5 sm:space-y-1">
               <li>2 hour minimum booking required</li>
               <li>Base rate for 1 child - ₪50/hour</li>
               <li>Multiple children or special needs may have different rates</li>
@@ -202,7 +205,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
         <div className="flex justify-center pt-2">
           <Button 
             type="submit" 
-            className="bg-accent hover:bg-accent/90 text-accent-foreground px-8"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground px-6 sm:px-8 text-sm h-9 sm:h-10"
             disabled={!form.formState.isValid}
           >
             Submit Booking Request
