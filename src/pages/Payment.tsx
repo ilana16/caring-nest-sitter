@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PaypalLogo, CreditCard, Info } from 'lucide-react';
+import { CreditCard, Info } from 'lucide-react';
+import { PaypalLogo } from '@/components/ui/paypal-logo';
 import PageTransition from '@/components/PageTransition';
 import PaymentButton from '@/components/PaymentButton';
 
