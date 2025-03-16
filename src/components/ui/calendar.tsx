@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
@@ -5,14 +6,44 @@ import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+  availableDays?: Date[];
+};
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  availableDays,
   ...props
 }: CalendarProps) {
+  // Function to determine if a day is available
+  const isDateAvailable = React.useCallback(
+    (date: Date) => {
+      if (!availableDays) return true;
+      return availableDays.some(
+        (availableDate) =>
+          availableDate.getDate() === date.getDate() &&
+          availableDate.getMonth() === date.getMonth() &&
+          availableDate.getFullYear() === date.getFullYear()
+      );
+    },
+    [availableDays]
+  );
+
+  // Custom day rendering to add available/unavailable styles
+  const modifiersClassNames = {
+    ...classNames?.modifiers,
+    available: "bg-green-50 text-green-700 hover:bg-green-100",
+    unavailable: "bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed",
+  };
+
+  // Custom modifiers
+  const modifiers = {
+    available: (date: Date) => isDateAvailable(date),
+    unavailable: (date: Date) => !isDateAvailable(date),
+  };
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -50,7 +81,11 @@ function Calendar({
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
         ...classNames,
+        modifiers: {
+          ...modifiersClassNames,
+        },
       }}
+      modifiers={modifiers}
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,

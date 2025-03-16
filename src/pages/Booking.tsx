@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon, Clock, Info } from 'lucide-react';
-import { format, addDays, isWeekend } from 'date-fns';
+import { format, addDays, isWeekend, startOfMonth, addMonths, eachDayOfInterval, isBefore, isAfter, isEqual, setHours, setMinutes, getHours, getMinutes, addHours } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -49,12 +49,60 @@ import { cn } from '@/lib/utils';
 import AnimatedButton from '@/components/AnimatedButton';
 import PageTransition from '@/components/PageTransition';
 
-// Available booking times
-const AVAILABLE_TIMES = [
-  '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-  '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', 
-  '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'
-];
+// Define types for availability
+interface TimeSlot {
+  time: string;
+  available: boolean;
+}
+
+// Mock availability data - in a real app this would come from an API
+const generateMockAvailability = () => {
+  const today = new Date();
+  const nextMonth = addMonths(today, 1);
+  
+  // Generate all days in the interval
+  const allDays = eachDayOfInterval({
+    start: today,
+    end: nextMonth,
+  });
+  
+  // Filter out weekends and some random days to simulate unavailability
+  const availableDays = allDays.filter(day => {
+    // Filter out weekends
+    if (isWeekend(day)) return false;
+    
+    // Random unavailability (about 30% of weekdays will be unavailable)
+    return Math.random() > 0.3;
+  });
+  
+  // For each available day, generate available time slots
+  const availabilityByDate: Record<string, TimeSlot[]> = {};
+  
+  availableDays.forEach(day => {
+    const dateKey = format(day, 'yyyy-MM-dd');
+    const timeSlots: TimeSlot[] = [];
+    
+    // Generate time slots from 9 AM to 8 PM
+    for (let hour = 9; hour <= 20; hour++) {
+      const hourString = hour <= 12 ? `${hour}:00 AM` : `${hour - 12}:00 PM`;
+      
+      // Random availability for time slots (about 40% will be unavailable)
+      const isAvailable = Math.random() > 0.4;
+      
+      timeSlots.push({
+        time: hourString,
+        available: isAvailable
+      });
+    }
+    
+    availabilityByDate[dateKey] = timeSlots;
+  });
+  
+  return {
+    availableDays,
+    availabilityByDate
+  };
+};
 
 const BookingFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -77,6 +125,9 @@ type BookingFormValues = z.infer<typeof BookingFormSchema>;
 
 const Booking = () => {
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [availability, setAvailability] = useState(() => generateMockAvailability());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   
   // Create booking form with react-hook-form
   const form = useForm<BookingFormValues>({
@@ -93,9 +144,41 @@ const Booking = () => {
     },
   });
 
-  // Get available dates (next 30 days excluding past dates)
-  const today = new Date();
-  const thirtyDaysFromNow = addDays(today, 30);
+  // Update available time slots when selected date changes
+  useEffect(() => {
+    if (selectedDate) {
+      const dateKey = format(selectedDate, 'yyyy-MM-dd');
+      const slots = availability.availabilityByDate[dateKey] || [];
+      setAvailableTimeSlots(slots);
+      
+      // Reset time selection if currently selected time is not available
+      const currentTime = form.getValues('startTime');
+      const isCurrentTimeAvailable = slots.some(slot => slot.time === currentTime && slot.available);
+      
+      if (currentTime && !isCurrentTimeAvailable) {
+        form.setValue('startTime', '');
+      }
+    } else {
+      setAvailableTimeSlots([]);
+    }
+  }, [selectedDate, availability, form]);
+
+  // Handle date selection and update form
+  const handleDateChange = (date: Date | undefined) => {
+    setSelectedDate(date);
+    form.setValue('date', date as Date);
+  };
+
+  // Get available times based on selected date and duration
+  const getAvailableTimes = () => {
+    return availableTimeSlots.filter(slot => slot.available);
+  };
+
+  // Format date as human-readable
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return 'Select a date';
+    return format(date, 'PPP');
+  };
 
   function onSubmit(data: BookingFormValues) {
     console.log("Form submitted:", data);
@@ -146,6 +229,7 @@ const Booking = () => {
                           onClick={() => {
                             setBookingSuccess(false);
                             form.reset();
+                            setSelectedDate(undefined);
                           }}
                         >
                           Make Another Booking
@@ -245,7 +329,7 @@ const Booking = () => {
                                       )}
                                     >
                                       {field.value ? (
-                                        format(field.value, "PPP")
+                                        formatDate(field.value)
                                       ) : (
                                         <span>Select a date</span>
                                       )}
@@ -257,13 +341,22 @@ const Booking = () => {
                                   <Calendar
                                     mode="single"
                                     selected={field.value}
-                                    onSelect={field.onChange}
+                                    onSelect={(date) => handleDateChange(date)}
+                                    availableDays={availability.availableDays}
                                     disabled={(date) => {
-                                      // Disable past dates, weekends, or dates beyond 30 days
-                                      return (
-                                        date < today ||
-                                        date > thirtyDaysFromNow
+                                      const today = new Date();
+                                      today.setHours(0, 0, 0, 0);
+                                      
+                                      // Check if date is in available days
+                                      const isAvailable = availability.availableDays.some(
+                                        availableDate => 
+                                          availableDate.getDate() === date.getDate() &&
+                                          availableDate.getMonth() === date.getMonth() &&
+                                          availableDate.getFullYear() === date.getFullYear()
                                       );
+                                      
+                                      // Disable past dates and unavailable dates
+                                      return isBefore(date, today) || !isAvailable;
                                     }}
                                     initialFocus
                                     className={cn("p-3 pointer-events-auto")}
@@ -284,18 +377,25 @@ const Booking = () => {
                               <Select 
                                 onValueChange={field.onChange} 
                                 defaultValue={field.value}
+                                disabled={!selectedDate}
                               >
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select a time" />
+                                    <SelectValue placeholder={selectedDate ? "Select a time" : "First select a date"} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {AVAILABLE_TIMES.map((time) => (
-                                    <SelectItem key={time} value={time}>
-                                      {time}
+                                  {getAvailableTimes().length > 0 ? (
+                                    getAvailableTimes().map((slot) => (
+                                      <SelectItem key={slot.time} value={slot.time}>
+                                        {slot.time}
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <SelectItem value="" disabled>
+                                      No available times for this date
                                     </SelectItem>
-                                  ))}
+                                  )}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -363,6 +463,7 @@ const Booking = () => {
                         <Button 
                           type="submit" 
                           className="bg-accent hover:bg-accent/90 text-accent-foreground px-8"
+                          disabled={!form.formState.isValid}
                         >
                           Submit Booking Request
                         </Button>
