@@ -40,8 +40,13 @@ const Navbar: React.FC = () => {
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/80 border-b border-border/40">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold font-playfair tracking-wide">
-            Ilana Cares
+          <Link to="/" className="flex items-center">
+            <img 
+              src="/lovable-uploads/38bfbd61-af3c-451e-8eda-32fd54e0b0ac.png" 
+              alt="Ilana Cares Logo" 
+              className="h-12 w-12 mr-3"
+            />
+            <span className="text-2xl font-bold font-playfair tracking-wide">Ilana Cares</span>
           </Link>
           
           {/* Desktop navigation */}
