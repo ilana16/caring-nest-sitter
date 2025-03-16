@@ -31,11 +31,15 @@ function Calendar({
     [availableDays]
   );
 
-  // Custom day rendering to add available/unavailable styles
-  const modifiersClassNames = {
-    ...classNames?.modifiers,
-    available: "bg-green-50 text-green-700 hover:bg-green-100",
-    unavailable: "bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed",
+  // Custom modifiers for the DayPicker
+  const modifiersStyles = {
+    available: { backgroundColor: "var(--green-50)", color: "var(--green-700)" },
+    unavailable: { 
+      backgroundColor: "var(--gray-100)", 
+      color: "var(--gray-400)", 
+      opacity: 0.5,
+      cursor: "not-allowed" 
+    },
   };
 
   // Custom modifiers
@@ -81,11 +85,9 @@ function Calendar({
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
         ...classNames,
-        modifiers: {
-          ...modifiersClassNames,
-        },
       }}
       modifiers={modifiers}
+      modifiersStyles={modifiersStyles}
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
