@@ -16,11 +16,12 @@ const Index = () => {
               transition={{ duration: 0.6 }}
               className="max-w-3xl mx-auto"
             >
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
                 Ilana Cares
               </h1>
-              <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto whitespace-nowrap">
-                English Speaking Babysitter In The Talpiot/Arnona/Baka/Katamon Area
+              <p className="text-sm md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
+                English Speaking Babysitter In<br className="inline sm:hidden" /> 
+                The Talpiot/Arnona/Baka/Katamon Area
               </p>
             </motion.div>
 
