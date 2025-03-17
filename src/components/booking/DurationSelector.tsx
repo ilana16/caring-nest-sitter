@@ -29,7 +29,7 @@ const DurationSelector: React.FC = () => {
                 step={1}
                 defaultValue={[field.value]}
                 onValueChange={(value) => field.onChange(value[0])}
-                className="flex-1"
+                className="flex-1 touch-target"
               />
               <span className="w-8 sm:w-12 text-center text-sm">{field.value}h</span>
             </div>

@@ -86,10 +86,16 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Poppins', sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
+  }
+  
+  /* Add meta viewport tag for better mobile rendering */
+  html {
+    -webkit-text-size-adjust: 100%;
   }
 }
 
@@ -170,4 +176,31 @@
   .mobile-subheading {
     @apply text-xl md:text-2xl;
   }
+  
+  /* Improve touch targets for mobile */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Prevent horizontal overflow */
+  .no-horizontal-overflow {
+    @apply max-w-full overflow-x-hidden;
+  }
+}
+
+/* Improve input field usability on mobile */
+input, select, textarea, button {
+  @apply text-base;
+  font-size: 16px !important; /* Prevents iOS zooming on focus */
+}
+
+/* Fix for 100vh issues on mobile */
+.min-h-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.h-screen {
+  height: 100vh;
+  height: 100dvh;
 }

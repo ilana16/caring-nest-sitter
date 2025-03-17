@@ -104,7 +104,7 @@ const Navbar: React.FC = () => {
                   key={link.path}
                   to={link.path}
                   className={cn(
-                    "py-2 px-4 rounded-lg font-medium text-center",
+                    "py-3 px-4 rounded-lg font-medium text-center",
                     location.pathname === link.path 
                       ? "bg-accent/10 text-accent" 
                       : "text-foreground/80 hover:bg-muted hover:text-foreground"
