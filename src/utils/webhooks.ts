@@ -19,9 +19,14 @@ export const sendToZapier = async (webhookUrl: string, data: any) => {
       headers: {
         "Content-Type": "application/json",
       },
-      mode: "no-cors", // Handle CORS issues
       body: JSON.stringify(data),
     });
+    
+    if (!response.ok) {
+      console.error("Zapier webhook error:", response.status, response.statusText);
+      return false;
+    }
+    
     return true;
   } catch (error) {
     console.error("Error sending data to Zapier:", error);
