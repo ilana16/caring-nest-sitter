@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 import {
   Form,
   FormControl,
@@ -41,6 +42,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useIsMobile();
   
   const form = useForm<BookingFormValues>({
@@ -78,9 +80,44 @@ const BookingForm: React.FC<BookingFormProps> = ({
     setSelectedDate(date);
   };
 
-  function onSubmit(data: BookingFormValues) {
+  async function onSubmit(data: BookingFormValues) {
+    setIsSubmitting(true);
     console.log("Form submitted:", data);
-    onSubmitSuccess();
+    
+    try {
+      // Format the date for better readability
+      const formattedDate = data.date ? format(data.date, 'PPPP') : 'No date selected';
+      
+      // Prepare booking data for submission
+      const bookingData = {
+        type: 'booking',
+        ...data,
+        formattedDate,
+        submissionTime: new Date().toISOString(),
+      };
+      
+      // Send to Zapier webhook which will handle email and Google Drive integration
+      await fetch('https://hooks.zapier.com/hooks/catch/123456/bookingxyz/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'no-cors', // Handle CORS issues
+        body: JSON.stringify({
+          ...bookingData,
+          recipientEmail: 'ilana.cunningham16@gmail.com',
+          subject: `Booking Request from ${data.name}`,
+        }),
+      });
+      
+      // Call the success callback to show success message
+      onSubmitSuccess();
+    } catch (error) {
+      console.error("Error submitting booking:", error);
+      toast.error("There was an error submitting your booking. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -206,9 +243,9 @@ const BookingForm: React.FC<BookingFormProps> = ({
           <Button 
             type="submit" 
             className="bg-accent hover:bg-accent/90 text-accent-foreground px-6 sm:px-8 text-sm h-9 sm:h-10"
-            disabled={!form.formState.isValid}
+            disabled={!form.formState.isValid || isSubmitting}
           >
-            Submit Booking Request
+            {isSubmitting ? "Submitting..." : "Submit Booking Request"}
           </Button>
         </div>
       </form>

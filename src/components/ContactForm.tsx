@@ -13,15 +13,40 @@ const ContactForm: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
-    // In a real application, you would connect this to an API endpoint
-    // For demo purposes, we'll simulate a submission
-    setTimeout(() => {
+    // Prepare form data
+    const formData = {
+      type: 'contact',
+      name,
+      email,
+      message,
+      date: new Date().toISOString(),
+    };
+
+    try {
+      // Send to Zapier webhook which will handle email and Google Drive integration
+      const response = await fetch('https://hooks.zapier.com/hooks/catch/123456/abcdef/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'no-cors', // Handle CORS issues
+        body: JSON.stringify({
+          ...formData,
+          recipientEmail: 'ilana.cunningham16@gmail.com',
+          subject: `Contact Form Submission from ${name}`,
+        }),
+      });
+
       toast.success("Message sent successfully! Ilana will get back to you soon.");
       setName('');
       setEmail('');
       setMessage('');
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("There was an error sending your message. Please try again later.");
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
