@@ -1,11 +1,10 @@
 
 /**
  * Zapier webhook URLs for form submissions
- * Note: These are placeholder URLs that should be replaced with actual Zapier webhook URLs
- * Once you create your Zaps in Zapier that connect to Google Drive and Email
+ * Note: Replace with actual Zapier webhook URLs for your Google Drive and Email integrations
  */
 export const ZAPIER_WEBHOOKS = {
-  contact: "https://hooks.zapier.com/hooks/catch/123456/abcdef/",
+  contact: "https://hooks.zapier.com/hooks/catch/13870092/2eggyve/",
   booking: "https://hooks.zapier.com/hooks/catch/123456/bookingxyz/"
 };
 

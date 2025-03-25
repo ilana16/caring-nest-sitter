@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { ZAPIER_WEBHOOKS, sendToZapier } from '@/utils/webhooks';
 
 const ContactForm: React.FC = () => {
   const [name, setName] = useState('');
@@ -20,27 +20,22 @@ const ContactForm: React.FC = () => {
       email,
       message,
       date: new Date().toISOString(),
+      recipientEmail: 'ilana.cunningham16@gmail.com',
+      subject: `Contact Form Submission from ${name}`,
     };
 
     try {
-      // Send to Zapier webhook which will handle email and Google Drive integration
-      const response = await fetch('https://hooks.zapier.com/hooks/catch/123456/abcdef/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'no-cors', // Handle CORS issues
-        body: JSON.stringify({
-          ...formData,
-          recipientEmail: 'ilana.cunningham16@gmail.com',
-          subject: `Contact Form Submission from ${name}`,
-        }),
-      });
-
-      toast.success("Message sent successfully! Ilana will get back to you soon.");
-      setName('');
-      setEmail('');
-      setMessage('');
+      // Send to Zapier webhook using the helper function
+      const success = await sendToZapier(ZAPIER_WEBHOOKS.contact, formData);
+      
+      if (success) {
+        toast.success("Message sent successfully! Ilana will get back to you soon.");
+        setName('');
+        setEmail('');
+        setMessage('');
+      } else {
+        toast.error("There was an error sending your message. Please try again later.");
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       toast.error("There was an error sending your message. Please try again later.");
