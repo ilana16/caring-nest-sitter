@@ -12,6 +12,7 @@ import Rates from "./pages/Rates";
 import Booking from "./pages/Booking";
 import Payment from "./pages/Payment";
 import Contact from "./pages/Contact";
+import TestRequest from "./pages/TestRequest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/booking" element={<Booking />} />
               <Route path="/payment" element={<Payment />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/test-request" element={<TestRequest />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>
