@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import AnimatedButton from '@/components/AnimatedButton';
@@ -19,7 +20,7 @@ const Index = () => {
                 Ilana Cares
               </h1>
               <p className="text-sm md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
-                English Speaking Babysitter In<br className="inline sm:hidden" /> 
+                English Speaking Babysitter In <br className="inline sm:hidden" /> 
                 <span className="sm:hidden">&nbsp;</span>The Talpiot/Arnona/Baka/Katamon Area
               </p>
             </motion.div>
