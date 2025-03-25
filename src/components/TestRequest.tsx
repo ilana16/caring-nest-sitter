@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { sendToZapier } from '@/utils/webhooks';
+import { sendToZapier, testWebhook, ZAPIER_WEBHOOKS } from '@/utils/webhooks';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const TestRequest: React.FC = () => {
   const [webhookUrl, setWebhookUrl] = useState('');
@@ -14,11 +15,15 @@ const TestRequest: React.FC = () => {
   const [testData, setTestData] = useState('{\n  "name": "Test User",\n  "email": "test@example.com",\n  "message": "This is a test message"\n}');
   const [responseStatus, setResponseStatus] = useState<null | 'success' | 'error'>(null);
   const [responseInfo, setResponseInfo] = useState('');
+  const [responseDetails, setResponseDetails] = useState('');
+  const [testMode, setTestMode] = useState<string | null>(null);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setResponseStatus(null);
     setResponseInfo('');
+    setResponseDetails('');
+    setTestMode(null);
     
     if (!webhookUrl) {
       toast.error("Please enter a webhook URL");
@@ -37,40 +42,39 @@ const TestRequest: React.FC = () => {
         return;
       }
       
-      // Use a direct fetch call for more detailed response handling
-      try {
-        const response = await fetch(webhookUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // Don't use no-cors mode to get actual response information
-          body: JSON.stringify(data),
-        });
-
-        // Create custom status message
-        const statusText = `Status: ${response.status} ${response.statusText}`;
-        console.log("Webhook response:", statusText);
+      // Add timestamp to data to ensure it's not identical to previous tests
+      data.timestamp = new Date().toISOString();
+      data._test = true; // Add flag to indicate this is a test
+      
+      // Use our enhanced testWebhook function
+      const result = await testWebhook(webhookUrl, data);
+      console.log("Webhook test result:", result);
+      
+      if (result.success) {
+        setResponseStatus('success');
+        setTestMode(result.mode);
         
-        if (response.status >= 200 && response.status < 300) {
-          setResponseStatus('success');
-          setResponseInfo(statusText);
-          toast.success("Test request sent successfully!");
+        if (result.mode === 'no-cors') {
+          setResponseInfo("Request sent (no-cors mode)");
+          setResponseDetails("Due to browser security restrictions, we can't verify if Zapier received the request. Please check your Zap's history to confirm. If you don't see any activity, make sure your Zap is turned ON.");
+          toast.success("Test request sent in no-cors mode. Check Zapier!");
         } else {
-          setResponseStatus('error');
-          setResponseInfo(`${statusText} - Make sure your Zap is turned ON and the webhook URL is correct.`);
-          toast.error("Error sending test request. See details below.");
+          setResponseInfo(`Status: ${result.status} ${result.statusText}`);
+          setResponseDetails(result.details || "Request processed successfully");
+          toast.success("Test request sent successfully!");
         }
-      } catch (error) {
-        console.error("Network error:", error);
+      } else {
         setResponseStatus('error');
-        setResponseInfo("Network error: This might be due to CORS restrictions. Try using mode: 'no-cors' for production use.");
-        toast.error("Network error occurred. See details below.");
+        setTestMode(result.mode);
+        setResponseInfo(`Error: ${result.error || `Status ${result.status} ${result.statusText}`}`);
+        setResponseDetails(result.details || "Make sure your Zap is turned ON and the webhook URL is correct.");
+        toast.error("Error sending test request. See details below.");
       }
     } catch (error) {
       console.error("Error sending test request:", error);
       setResponseStatus('error');
       setResponseInfo(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setResponseDetails("An unexpected error occurred while testing the webhook.");
       toast.error("An error occurred while sending the test request.");
     } finally {
       setIsLoading(false);
@@ -154,23 +158,36 @@ const TestRequest: React.FC = () => {
                 ) : (
                   <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
                 )}
-                <div>
-                  <h3 className={`text-sm font-medium ${responseStatus === 'success' ? 'text-green-800' : 'text-red-800'}`}>
-                    {responseStatus === 'success' ? 'Request Successful' : 'Request Failed'}
-                  </h3>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className={`text-sm font-medium ${responseStatus === 'success' ? 'text-green-800' : 'text-red-800'}`}>
+                      {responseStatus === 'success' ? 'Request Sent' : 'Request Failed'}
+                    </h3>
+                    {testMode && (
+                      <Badge variant={testMode === 'no-cors' ? 'outline' : 'secondary'} className="text-xs">
+                        {testMode === 'no-cors' ? 'No-CORS Mode' : 'Standard Mode'}
+                      </Badge>
+                    )}
+                  </div>
                   <p className={`text-sm mt-1 ${responseStatus === 'success' ? 'text-green-700' : 'text-red-700'}`}>
                     {responseInfo}
                   </p>
+                  {responseDetails && (
+                    <p className={`text-sm mt-2 ${responseStatus === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                      {responseDetails}
+                    </p>
+                  )}
                 </div>
               </div>
+              
               {responseStatus === 'error' && (
                 <div className="mt-3 pl-7">
-                  <p className="text-sm text-red-700 font-medium">Troubleshooting:</p>
+                  <p className="text-sm text-red-700 font-medium">Common causes of "No request found" in Zapier:</p>
                   <ul className="list-disc pl-5 text-sm text-red-700 mt-1 space-y-1">
-                    <li>Make sure your Zap is turned ON in Zapier</li>
-                    <li>Verify the webhook URL is correct</li>
-                    <li>Check that your data format matches what Zapier expects</li>
-                    <li>Try using a tool like Postman to test the webhook directly</li>
+                    <li>Your Zap is <strong>turned OFF</strong> in Zapier - most common issue!</li>
+                    <li>The webhook URL is incorrect or has expired</li>
+                    <li>Your Zap's trigger step isn't configured correctly</li>
+                    <li>You're sending data in a format Zapier doesn't expect</li>
                   </ul>
                 </div>
               )}
@@ -183,7 +200,7 @@ const TestRequest: React.FC = () => {
               <div>
                 <h3 className="text-sm font-medium text-blue-800">Zapier Webhook Tips</h3>
                 <p className="text-sm mt-1 text-blue-700">
-                  If you see "No request found" in Zapier, it means your Zap may be turned off or the webhook URL is incorrect. Make sure your Zap is active and the webhook URL is properly set up.
+                  If you see "No request found" in Zapier, first check if your Zap is turned ON. The toggle switch should be enabled in your Zapier dashboard. Also verify that your webhook URL hasn't expired - Zapier webhooks are only valid for a limited time.
                 </p>
               </div>
             </div>
@@ -194,7 +211,12 @@ const TestRequest: React.FC = () => {
             disabled={isLoading}
             className="w-full"
           >
-            {isLoading ? "Sending..." : "Send Test Request"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                Testing...
+              </>
+            ) : "Send Test Request"}
           </Button>
         </form>
       </CardContent>
