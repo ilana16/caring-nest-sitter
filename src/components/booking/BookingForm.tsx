@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +27,7 @@ import DateSelector from './DateSelector';
 import TimeSlotSelector from './TimeSlotSelector';
 import DurationSelector from './DurationSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ZAPIER_WEBHOOKS, sendToZapier } from '@/utils/webhooks';
 
 interface BookingFormProps {
   availableDays: Date[];
@@ -85,33 +85,24 @@ const BookingForm: React.FC<BookingFormProps> = ({
     console.log("Form submitted:", data);
     
     try {
-      // Format the date for better readability
       const formattedDate = data.date ? format(data.date, 'PPPP') : 'No date selected';
       
-      // Prepare booking data for submission
       const bookingData = {
         type: 'booking',
         ...data,
         formattedDate,
         submissionTime: new Date().toISOString(),
+        recipientEmail: 'ilana.cunningham16@gmail.com',
+        subject: `Booking Request from ${data.name}`,
       };
       
-      // Send to Zapier webhook which will handle email and Google Drive integration
-      await fetch('https://hooks.zapier.com/hooks/catch/123456/bookingxyz/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'no-cors', // Handle CORS issues
-        body: JSON.stringify({
-          ...bookingData,
-          recipientEmail: 'ilana.cunningham16@gmail.com',
-          subject: `Booking Request from ${data.name}`,
-        }),
-      });
+      const success = await sendToZapier(ZAPIER_WEBHOOKS.booking, bookingData);
       
-      // Call the success callback to show success message
-      onSubmitSuccess();
+      if (success) {
+        onSubmitSuccess();
+      } else {
+        toast.error("There was an error submitting your booking. Please try again later.");
+      }
     } catch (error) {
       console.error("Error submitting booking:", error);
       toast.error("There was an error submitting your booking. Please try again later.");
