@@ -5,7 +5,7 @@
  */
 export const ZAPIER_WEBHOOKS = 
 {
-  contact: "https://hooks.zapier.com/hooks/catch/13870092/2egepyu/",
+  contact: "https://hooks.zapier.com/hooks/catch/13870092/2eggyve/",
   booking: "https://hooks.zapier.com/hooks/catch/123456/bookingxyz/"
 };
 
