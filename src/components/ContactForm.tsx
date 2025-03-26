@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -25,15 +26,19 @@ const ContactForm: React.FC = () => {
     };
 
     try {
-      // Send to Zapier webhook using the helper function
-      const success = await sendToZapier(ZAPIER_WEBHOOKS.contact, formData);
+      console.log("Sending contact form to Zapier webhook:", ZAPIER_WEBHOOKS.contact);
       
-      if (success) {
+      // Send to Zapier webhook using the helper function
+      const result = await sendToZapier(ZAPIER_WEBHOOKS.contact, formData);
+      
+      if (result.success) {
         toast.success("Message sent successfully! Ilana will get back to you soon.");
+        // Clear form fields on success
         setName('');
         setEmail('');
         setMessage('');
       } else {
+        console.error("Error details:", result);
         toast.error("There was an error sending your message. Please try again later.");
       }
     } catch (error) {

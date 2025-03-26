@@ -22,6 +22,7 @@ export const sendToZapier = async (webhookUrl: string, data: any) => {
     // Add a flag to the data to identify it was sent from this app
     data._source = "webhook_tester";
     data._timestamp = new Date().toISOString();
+    data._debug = true; // Add debug flag
     
     const response = await fetch(webhookUrl, {
       method: "POST",
