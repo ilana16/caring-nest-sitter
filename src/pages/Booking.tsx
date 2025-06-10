@@ -3,14 +3,12 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import AnimatedButton from '@/components/AnimatedButton';
 import PageTransition from '@/components/PageTransition';
-import BookingForm from '@/components/booking/BookingForm';
+import MultiStepBookingForm from '@/components/booking/MultiStepBookingForm';
 import SuccessMessage from '@/components/booking/SuccessMessage';
 import AvailabilityCalendarDialog from '@/components/booking/AvailabilityCalendarDialog';
-import { generateMockAvailability } from '@/utils/availability';
 
 const Booking = () => {
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [availability, setAvailability] = useState(() => generateMockAvailability());
 
   const handleBookingSuccess = () => {
     setBookingSuccess(true);
@@ -32,7 +30,7 @@ const Booking = () => {
           >
             <h1 className="text-3xl md:text-4xl font-bold text-center mb-6">Availability & Booking</h1>
             <p className="text-lg text-center text-foreground/80 mb-12 max-w-2xl mx-auto">
-              Fill out the form below to book a time slot for babysitting services
+              Book your babysitting session in 4 easy steps. Our system automatically checks availability based on Ilana's calendar.
             </p>
             
             <div className="mb-8">
@@ -49,11 +47,7 @@ const Booking = () => {
                 {bookingSuccess ? (
                   <SuccessMessage onReset={handleReset} />
                 ) : (
-                  <BookingForm 
-                    availableDays={availability.availableDays}
-                    availabilityByDate={availability.availabilityByDate}
-                    onSubmitSuccess={handleBookingSuccess}
-                  />
+                  <MultiStepBookingForm onSubmitSuccess={handleBookingSuccess} />
                 )}
               </motion.div>
               
