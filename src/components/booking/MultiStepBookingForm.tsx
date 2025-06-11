@@ -195,7 +195,6 @@ const MultiStepBookingForm: React.FC<MultiStepBookingFormProps> = ({ onSubmitSuc
               <p className="text-sm text-muted-foreground">Choose your preferred date</p>
             </div>
             <DateSelector 
-              availableDays={[]} // All days are potentially available
               onDateChange={handleDateChange}
               selectedDate={selectedDate}
               name="date"

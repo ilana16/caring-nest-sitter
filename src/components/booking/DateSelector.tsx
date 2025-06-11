@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format, addHours } from 'date-fns';
+import { format, addHours, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { CalendarIcon, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -20,13 +20,23 @@ import { cn } from '@/lib/utils';
 import { useFormContext } from 'react-hook-form';
 import { BookingFormValues } from '@/schemas/bookingFormSchema';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { BUSINESS_HOURS } from '@/utils/availability';
 
 interface DateSelectorProps {
-  availableDays: Date[];
+  availableDays?: Date[];
   onDateChange: (date: Date | undefined) => void;
+  selectedDate?: Date;
+  name: string;
+  control: any;
 }
 
-const DateSelector: React.FC<DateSelectorProps> = ({ availableDays, onDateChange }) => {
+const DateSelector: React.FC<DateSelectorProps> = ({ 
+  availableDays = [], 
+  onDateChange, 
+  selectedDate,
+  name,
+  control 
+}) => {
   const formatDate = (date: Date | undefined) => {
     if (!date) return 'Select a date';
     return format(date, 'PPP');
@@ -38,8 +48,15 @@ const DateSelector: React.FC<DateSelectorProps> = ({ availableDays, onDateChange
   const minBookingDate = new Date(minBookingTime);
   minBookingDate.setHours(0, 0, 0, 0); // Set to start of day
 
+  // Check if a date is a working day based on business hours
+  const isWorkingDay = (date: Date): boolean => {
+    const dayOfWeek = date.getDay();
+    return BUSINESS_HOURS.workingDays.includes(dayOfWeek);
+  };
+
   return (
     <FormField
+      control={control}
       name="date"
       render={({ field }) => (
         <FormItem className="flex flex-col">
@@ -51,7 +68,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ availableDays, onDateChange
                   <Info className="h-4 w-4 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-xs">Bookings require at least 42 hours notice</p>
+                  <p className="max-w-xs">Bookings require at least 42 hours notice. Available Sunday-Thursday.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -83,19 +100,26 @@ const DateSelector: React.FC<DateSelectorProps> = ({ availableDays, onDateChange
                   onDateChange(date);
                   field.onChange(date);
                 }}
-                availableDays={availableDays}
                 disabled={(date) => {
                   // Dates before the minimum booking date are disabled
                   const isBeforeMinBookingDate = date < minBookingDate;
                   
-                  const isAvailable = availableDays.some(
-                    availableDate => 
-                      availableDate.getDate() === date.getDate() &&
-                      availableDate.getMonth() === date.getMonth() &&
-                      availableDate.getFullYear() === date.getFullYear()
-                  );
+                  // Check if it's a working day
+                  const isNotWorkingDay = !isWorkingDay(date);
                   
-                  return isBeforeMinBookingDate || !isAvailable;
+                  // If availableDays is provided and not empty, check against it
+                  // Otherwise, allow all working days after the minimum date
+                  let isNotInAvailableDays = false;
+                  if (availableDays && availableDays.length > 0) {
+                    isNotInAvailableDays = !availableDays.some(
+                      availableDate => 
+                        availableDate.getDate() === date.getDate() &&
+                        availableDate.getMonth() === date.getMonth() &&
+                        availableDate.getFullYear() === date.getFullYear()
+                    );
+                  }
+                  
+                  return isBeforeMinBookingDate || isNotWorkingDay || isNotInAvailableDays;
                 }}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
@@ -105,7 +129,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ availableDays, onDateChange
           
           {/* Notice about 42 hour requirement */}
           <div className="text-xs text-muted-foreground mt-1">
-            Bookings require at least 42 hours notice
+            Bookings require at least 42 hours notice. Available Sunday-Thursday.
           </div>
           
           <FormMessage />

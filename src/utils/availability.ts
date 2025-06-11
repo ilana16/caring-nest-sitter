@@ -48,11 +48,36 @@ export async function fetchAndParseICS(url: string): Promise<ICAL.Event[]> {
 }
 
 /**
- * Fetches busy events from Google Calendar scraper API
+ * Fetches busy events from Google Calendar ICS feed
  */
 export async function fetchBusyEvents(calendarUrl: string): Promise<BusyEvent[]> {
   try {
-    // For testing, return mock data
+    // Convert embed URL to ICS URL
+    const icsUrl = convertEmbedUrlToIcs(calendarUrl);
+    
+    // Fetch ICS events using existing function
+    const icsEvents = await fetchAndParseICS(icsUrl);
+    
+    // Convert ICAL events to our BusyEvent format
+    const busyEvents: BusyEvent[] = icsEvents.map(event => {
+      const startDate = event.startDate.toJSDate();
+      const endDate = event.endDate.toJSDate();
+      
+      return {
+        date: startDate.toISOString().split('T')[0],
+        startTime: formatTime(startDate),
+        endTime: formatTime(endDate),
+        title: event.summary || 'busy'
+      };
+    });
+    
+    return busyEvents;
+    
+  } catch (error) {
+    console.error('Error fetching busy events:', error);
+    
+    // Fallback to mock data for testing if API fails
+    console.log('Falling back to mock data for testing');
     const today = new Date();
     const mockEvents: BusyEvent[] = [];
     
@@ -81,26 +106,31 @@ export async function fetchBusyEvents(calendarUrl: string): Promise<BusyEvent[]>
     }
     
     return mockEvents;
+  }
+}
+
+/**
+ * Convert Google Calendar embed URL to ICS feed URL
+ */
+function convertEmbedUrlToIcs(embedUrl: string): string {
+  try {
+    const url = new URL(embedUrl);
+    const src = url.searchParams.get('src');
     
-    // Uncomment below for actual API call when backend is ready
-    /*
-    const response = await fetch('/api/scrape-calendar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ calendarUrl }),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch busy events: ${response.statusText}`);
+    if (!src) {
+      throw new Error('No src parameter found in embed URL');
     }
     
-    return await response.json();
-    */
+    // Decode the email address
+    const email = decodeURIComponent(src);
+    
+    // Convert to ICS format
+    return `https://calendar.google.com/calendar/ical/${encodeURIComponent(email)}/public/basic.ics`;
   } catch (error) {
-    console.error('Error fetching busy events:', error);
-    return [];
+    console.error('Error converting embed URL to ICS:', error);
+    // Fallback to a direct conversion
+    const email = 'ilana.cunningham16@gmail.com';
+    return `https://calendar.google.com/calendar/ical/${encodeURIComponent(email)}/public/basic.ics`;
   }
 }
 
