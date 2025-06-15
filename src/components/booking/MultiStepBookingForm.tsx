@@ -151,20 +151,32 @@ const MultiStepBookingForm: React.FC<MultiStepBookingFormProps> = ({ onSubmitSuc
       const formattedDate = data.date ? format(data.date, 'PPPP') : 'No date selected';
       
       const bookingData = {
-        type: 'booking',
-        ...data,
-        formattedDate,
-        submissionTime: new Date().toISOString(),
-        recipientEmail: 'ilana.cunningham16@gmail.com',
-        subject: `Booking Request from ${data.name}`,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        children: data.children,
+        date: formattedDate,
+        startTime: data.startTime,
+        duration: data.duration,
+        comments: data.comments || '',
       };
       
-      const success = await sendToZapier(ZAPIER_WEBHOOKS.booking, bookingData);
+      // Submit to Flask backend
+      const response = await fetch('https://nghki1c8818y.manus.space/api/submit-booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
+      });
       
-      if (success) {
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
         onSubmitSuccess();
+        toast.success("Booking request submitted successfully! Confirmation emails have been sent.");
       } else {
-        toast.error("There was an error submitting your booking. Please try again later.");
+        toast.error(result.error || "There was an error submitting your booking. Please try again later.");
       }
     } catch (error) {
       console.error("Error submitting booking:", error);
