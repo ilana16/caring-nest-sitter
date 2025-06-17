@@ -97,8 +97,9 @@ def calculate_end_time(start_time, duration):
         start_hour, start_minute = map(int, start_time.split(':'))
         
         # Convert duration to hours and minutes
-        duration_hours = int(duration)
-        duration_minutes = int((duration - duration_hours) * 60)
+        duration_float = float(duration)
+        duration_hours = int(duration_float)
+        duration_minutes = int((duration_float - duration_hours) * 60)
         
         # Calculate end time
         end_minute = start_minute + duration_minutes

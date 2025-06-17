@@ -162,14 +162,13 @@ const MultiStepBookingForm: React.FC<MultiStepBookingFormProps> = ({ onSubmitSuc
       };
       
       // Submit to Flask backend
-      const response = await fetch('https://nghki1c8818y.manus.space/api/submit-booking', {
+      const response = await fetch('https://qjh9iecend63.manus.space/api/submit-booking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(bookingData),
-      });
-      
+        body: JSON.stringify(formData),
+      });     
       const result = await response.json();
       
       if (response.ok && result.success) {

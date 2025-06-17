@@ -48,15 +48,32 @@ export async function fetchAndParseICS(url: string): Promise<ICAL.Event[]> {
 }
 
 /**
- * Fetches busy events from Google Calendar ICS feed
+ * Fetches busy events from Google Calendar ICS feed via backend proxy
  */
 export async function fetchBusyEvents(calendarUrl: string): Promise<BusyEvent[]> {
   try {
-    // Convert embed URL to ICS URL
-    const icsUrl = convertEmbedUrlToIcs(calendarUrl);
+    // Use backend proxy to avoid CORS issues
+    const backendUrl = 'https://qjh9iecend63.manus.space/api/get-calendar-events';
     
-    // Fetch ICS events using existing function
-    const icsEvents = await fetchAndParseICS(icsUrl);
+    // Fetch ICS data from backend proxy
+    const response = await fetch(backendUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch calendar data: ${response.statusText}`);
+    }
+    
+    const icsData = await response.text();
+    console.log("Fetched ICS data length:", icsData.length); // Add logging
+    
+    // Parse ICS data
+    const jcalData = ICAL.parse(icsData);
+    const vcalendar = new ICAL.Component(jcalData);
+    const veventsComponents = vcalendar.getAllSubcomponents('vevent');
+
+    const icsEvents: ICAL.Event[] = veventsComponents.map((veventComponent: any) => {
+      return new ICAL.Event(veventComponent);
+    });
+    
+    console.log("Fetched ICS Events:", icsEvents); // Add logging
     
     // Convert ICAL events to our BusyEvent format
     const busyEvents: BusyEvent[] = icsEvents.map(event => {
@@ -64,12 +81,13 @@ export async function fetchBusyEvents(calendarUrl: string): Promise<BusyEvent[]>
       const endDate = event.endDate.toJSDate();
       
       return {
-        date: startDate.toISOString().split('T')[0],
+        date: startDate.toISOString().split("T")[0],
         startTime: formatTime(startDate),
         endTime: formatTime(endDate),
-        title: event.summary || 'busy'
+        title: event.summary || "busy"
       };
     });
+    console.log("Converted Busy Events:", busyEvents); // Add logging
     
     return busyEvents;
     

@@ -9,12 +9,13 @@ from flask_cors import CORS
 from src.models.user import db
 from src.routes.user import user_bp
 from src.routes.booking import booking_bp
+from src.routes.calendar import calendar_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
-# Enable CORS for all routes
-CORS(app)
+# Enable CORS for all routes with specific configuration
+CORS(app, origins=['*'], methods=['GET', 'POST', 'OPTIONS'], allow_headers=['Content-Type', 'Authorization'])
 
 # Email configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -30,6 +31,7 @@ mail = Mail(app)
 
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(booking_bp, url_prefix='/api')
+app.register_blueprint(calendar_bp, url_prefix='/api')
 
 # uncomment if you need to use database
 # app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('DB_USERNAME', 'root')}:{os.getenv('DB_PASSWORD', 'password')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '3306')}/{os.getenv('DB_NAME', 'mydb')}"
