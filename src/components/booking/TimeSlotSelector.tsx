@@ -21,9 +21,18 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 interface TimeSlotSelectorProps {
   availableTimeSlots: TimeSlot[];
   selectedDate: Date | undefined;
+  isLoading?: boolean;
+  name: string;
+  control: any;
 }
 
-const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({ availableTimeSlots, selectedDate }) => {
+const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({ 
+  availableTimeSlots, 
+  selectedDate, 
+  isLoading = false,
+  name,
+  control 
+}) => {
   const getAvailableTimes = () => {
     return availableTimeSlots.filter(slot => slot.available);
   };
@@ -34,7 +43,8 @@ const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({ availableTimeSlots,
 
   return (
     <FormField
-      name="startTime"
+      control={control}
+      name={name}
       render={({ field }) => (
         <FormItem>
           <div className="flex items-center gap-2">
@@ -52,41 +62,57 @@ const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({ availableTimeSlots,
           </div>
           <Select 
             onValueChange={field.onChange} 
-            defaultValue={field.value}
-            disabled={!selectedDate}
+            value={field.value}
+            disabled={!selectedDate || isLoading}
           >
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder={selectedDate ? "Select a time" : "First select a date"} />
+                <SelectValue placeholder={
+                  isLoading ? "Loading times..." : 
+                  selectedDate ? "Select a time" : 
+                  "First select a date"
+                } />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {getAvailableTimes().length > 0 ? (
+              {isLoading ? (
+                <SelectItem value="loading" disabled>
+                  Loading available times...
+                </SelectItem>
+              ) : availableTimeSlots.length > 0 ? (
                 <>
                   {/* Available times */}
-                  <SelectItem value="available-times-header" disabled className="font-semibold text-xs opacity-70">
-                    Available Times
-                  </SelectItem>
-                  {getAvailableTimes().map((slot) => (
-                    <SelectItem key={slot.time} value={slot.time}>
-                      {slot.time}
-                    </SelectItem>
-                  ))}
+                  {getAvailableTimes().length > 0 && (
+                    <>
+                      <SelectItem value="available-times-header" disabled className="font-semibold text-xs opacity-70 text-green-600">
+                        ✓ Available Times
+                      </SelectItem>
+                      {getAvailableTimes().map((slot) => (
+                        <SelectItem 
+                          key={slot.time} 
+                          value={slot.time}
+                          className="font-medium text-green-700"
+                        >
+                          {slot.time}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                   
                   {/* Unavailable times */}
                   {getUnavailableTimes().length > 0 && (
                     <>
-                      <SelectItem value="unavailable-times-header" disabled className="font-semibold text-xs opacity-70 mt-2">
-                        Busy - Unavailable Times
+                      <SelectItem value="unavailable-times-header" disabled className="font-semibold text-xs opacity-70 mt-2 text-red-600">
+                        ✗ Busy - Unavailable Times
                       </SelectItem>
                       {getUnavailableTimes().map((slot) => (
                         <SelectItem 
-                          key={slot.time} 
+                          key={`unavailable-${slot.time}`} 
                           value={`unavailable-${slot.time}`} 
                           disabled 
-                          className="text-gray-400 line-through"
+                          className="text-gray-400 line-through opacity-60 bg-gray-50"
                         >
-                          {slot.time}
+                          <span className="line-through text-red-400">{slot.time}</span>
                         </SelectItem>
                       ))}
                     </>

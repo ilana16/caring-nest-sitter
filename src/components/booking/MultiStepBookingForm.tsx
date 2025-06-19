@@ -82,26 +82,33 @@ const MultiStepBookingForm: React.FC<MultiStepBookingFormProps> = ({ onSubmitSuc
       setIsLoadingSlots(true);
       const duration = form.getValues('duration');
       const slotDurationMinutes = duration * 60; // Convert hours to minutes
-      const slots = getAvailableTimeSlots(selectedDate, busyEvents, 15); // 15-minute intervals
+      const allSlots = getAvailableTimeSlots(selectedDate, busyEvents, 15); // 15-minute intervals
       
-      // Filter slots to ensure enough consecutive time for the booking duration
-      const filteredSlots = slots.filter((slot, index) => {
-        if (!slot.available) return false;
+      // Keep ALL slots (both available and unavailable) for display
+      // Only filter for consecutive availability when determining if a slot can be selected
+      const slotsWithAvailability = allSlots.map((slot, index) => {
+        if (!slot.available) {
+          return { ...slot, available: false }; // Keep unavailable slots for display
+        }
         
         // Check if there are enough consecutive available slots for the duration
         const slotsNeeded = Math.ceil(slotDurationMinutes / 15);
+        let hasConsecutiveSlots = true;
+        
         for (let i = 0; i < slotsNeeded; i++) {
-          if (index + i >= slots.length || !slots[index + i].available) {
-            return false;
+          if (index + i >= allSlots.length || !allSlots[index + i].available) {
+            hasConsecutiveSlots = false;
+            break;
           }
         }
-        return true;
+        
+        return { ...slot, available: hasConsecutiveSlots };
       });
       
-      setAvailableTimeSlots(filteredSlots);
+      setAvailableTimeSlots(slotsWithAvailability);
       
       const currentTime = form.getValues('startTime');
-      const isCurrentTimeAvailable = filteredSlots.some(slot => slot.time === currentTime);
+      const isCurrentTimeAvailable = slotsWithAvailability.some(slot => slot.time === currentTime && slot.available);
       
       if (currentTime && !isCurrentTimeAvailable) {
         form.setValue('startTime', '');
