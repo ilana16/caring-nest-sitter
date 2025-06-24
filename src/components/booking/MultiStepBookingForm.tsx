@@ -174,7 +174,7 @@ const MultiStepBookingForm: React.FC<MultiStepBookingFormProps> = ({ onSubmitSuc
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(bookingData),
       });     
       const result = await response.json();
       
