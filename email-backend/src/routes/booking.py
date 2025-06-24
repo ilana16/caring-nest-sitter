@@ -145,3 +145,7 @@ def test_email():
             'details': str(e)
         }), 500
 
+
+from flask_cors import CORS
+CORS(booking_bp)
+
