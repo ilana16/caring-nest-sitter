@@ -9,7 +9,7 @@ export interface TimeSlot {
 }
 
 /**
- * Business hours configuration for Israel timezone
+ * Business hours configuration for Jerusalem, Israel timezone
  * Sunday-Thursday 7:30-23:30
  */
 export const BUSINESS_HOURS = {
