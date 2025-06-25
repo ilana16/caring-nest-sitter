@@ -53,7 +53,7 @@ export async function fetchAndParseICS(url: string): Promise<ICAL.Event[]> {
 export async function fetchBusyEvents(calendarUrl: string): Promise<BusyEvent[]> {
   try {
     // Use backend proxy to avoid CORS issues
-    const backendUrl = 'https://qjh9iecend63.manus.space/api/get-calendar-events';
+    const backendUrl = 'https://5001-ioh40819ng3kwlicduoa7-df129213.manusvm.computer/api/get-calendar-events';
     
     // Fetch ICS data from backend proxy
     const response = await fetch(backendUrl);
